@@ -213,7 +213,6 @@ const generatePersonForm = async () => {
       country: e.target[3].value,
       activities: localStorage.getItem("activityIDs").split(',')
     }
-    localStorage.setItem("countryID", e.target[3].value);
     console.log(newUser);
     const userID = await postPerson(newUser);
     generateUserCheck(userID);
@@ -224,7 +223,7 @@ const generatePersonForm = async () => {
 
 // ============= Gets info about user (by ID) and renders it
 const generateUserCheck = async(personID) => {
-  const personData = await getData(`http://18.193.250.181:1337/api/people/${personID}`);
+  const personData = await getData(`http://18.193.250.181:1337/api/people/${personID}?populate=*&filters[country][id][$eq]=1`);
   const countries = await getData(countriesURL);
 
   if(personData == null || countries == null) return;
@@ -285,7 +284,7 @@ const generateUserCheck = async(personID) => {
   countryTitle.classList = "userTitle";
 
   const countryValue = document.createElement("div");
-  countryValue.textContent = countries.data[localStorage.getItem("countryID")-1].attributes.country;
+  countryValue.textContent = personData.data.attributes.country.data.attributes.country;
   countryValue.classList = "userValue";
   detailsList.appendChild(nameTitle);
   detailsList.appendChild(nameValue);
