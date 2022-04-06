@@ -1,26 +1,26 @@
 const stepCount = document.querySelector("#count");
 const loadingBar = document.querySelector("#loadingBar");
 const formSelect = document.querySelector("#formSelect");
-const checkboxContainer = document.querySelector("#checkboxContainer");
-
-const actionForm = document.querySelector("#actionForm");
 
 const peopleURL = "http://18.193.250.181:1337/api/people";
 const countriesURL = "http://18.193.250.181:1337/api/countries";
 const activitiesURL = "http://18.193.250.181:1337/api/activities";
 
+
+// ============= Gets data from given URL
 const getData = async (url) => {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    if(data != null) return data;  
+    if(data.data != null) return data;  
 
-    return alert("error");
+    generateErrorField("Failed getting meaningful data");
   } catch (error) {
-    alert(error || "unknown error");
+    generateErrorField(error || "unknown error");
   }
 }
 
+// ============= Post info about single user (new user object)
 const postPerson = async (person) => {
   try {
     const response = await fetch(peopleURL, {
@@ -37,10 +37,11 @@ const postPerson = async (person) => {
     const data = await response.json();
     return data.data.id;
   } catch (error) {
-    alert(error);
+    generateErrorField(error);
   }
 }
 
+// ============= Delete info about single user (by ID)
 const deletePerson = async (person) => {
   const deleteURL = peopleURL + "/" + person;
   try {
@@ -53,13 +54,24 @@ const deletePerson = async (person) => {
     const data = response.json();
     console.log(data);
   } catch (error) {
-    alert(error);
+    generateErrorField(error);
   }
 }
 
+// ============= Renders an error message
+const generateErrorField = (error) => {
+  const h3 = document.createElement("h3");
+  h3.textContent = error;
+
+  formSelect.appendChild(h3);
+}
+
+// ============= Creates the first form with selectable activities
 const generateActionForm = async () => {
   const data = await getData(activitiesURL);
+  if(data == null) return;
 
+  // General data change - step count, loadingbar increase
   formSelect.innerHTML = "";
   stepCount.innerHTML = 1;
   loadingBar.style.width = "25%";
@@ -72,7 +84,7 @@ const generateActionForm = async () => {
 
   actionForm.appendChild(h2);
 
-  let checkboxContainer = document.createElement("div");
+  const checkboxContainer = document.createElement("div");
   checkboxContainer.id = "checkboxContainer";
 
   data.data.map(item => {
@@ -108,7 +120,6 @@ const generateActionForm = async () => {
 
     Array.from(document.querySelectorAll('input[type=checkbox]:checked'))
       .map(item => actionIDs.push(item.value));
-    console.log(actionIDs);
 
     localStorage.setItem("activityIDs", actionIDs);
     generatePersonForm();
@@ -117,12 +128,15 @@ const generateActionForm = async () => {
   formSelect.append(actionForm);
 }
 
+// ============= Creates the second form with details about user
 const generatePersonForm = async () => {
   const countryList = await getData(countriesURL);
+  if(countryList == null) return;
+
+    // General data change - step count, loadingbar increase
   formSelect.innerHTML = "";
   stepCount.innerHTML = 2;
   loadingBar.style.width = "50%";
-
 
   const personForm = document.createElement("form");
   personForm.id = "personForm";
@@ -208,10 +222,14 @@ const generatePersonForm = async () => {
   formSelect.append(personForm);
 }
 
+// ============= Gets info about user (by ID) and renders it
 const generateUserCheck = async(personID) => {
   const personData = await getData(`http://18.193.250.181:1337/api/people/${personID}`);
   const countries = await getData(countriesURL);
 
+  if(personData == null || countries == null) return;
+
+  // General data change - step count, loadingbar increase
   formSelect.innerHTML = "";
   stepCount.innerHTML = 3;
   loadingBar.style.width = "75%";
@@ -306,7 +324,9 @@ const generateUserCheck = async(personID) => {
   formSelect.append(detailsContainer);
 }
 
+// ============= Renders a "good job" message
 const generateFinish = () => {
+  // General data change - step count, loadingbar increase
   formSelect.innerHTML = "";
   stepCount.innerHTML = 4;
   loadingBar.style.width = "100%";
